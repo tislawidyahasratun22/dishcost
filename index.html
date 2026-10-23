@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DishCost Live - Hitung Modal & Keuntungan Resto</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tesseract.js Client-Side OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white">
+
+    <!-- ========================================== -->
+    <!-- 1. AUTH SCREEN (LOGIN & REGISTRASI)        -->
+    <!-- ========================================== -->
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-emerald-100 relative overflow-hidden transition-all my-auto">
+            <!-- Ambient Gradient Decorative Dots -->
+            <div class="absolute -top-12 -right-12 w-48 h-48 bg-emerald-200/50 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-teal-200/50 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-6">
+                <!-- Header Logo & Branding -->
+                <div class="text-center space-y-2">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-black text-2xl shadow-lg shadow-emerald-500/30 mb-1">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <h1 class="text-2xl font-black tracking-tight text-slate-900">DishCost <span class="text-emerald-600">Live</span></h1>
+                    <p class="text-xs text-slate-500 font-medium">Kalkulator Untung-Rugi & Modal Resep Kuliner Anda</p>
+                </div>
+
+                <!-- Tab Switcher (Login vs Register) -->
+                <div class="flex p-1 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600">
+                    <button id="btn-tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl transition bg-white text-slate-900 shadow-xs">Masuk Akun</button>
+                    <button id="btn-tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-xl transition hover:text-slate-900 text-slate-500">Daftar Akun Baru</button>
+                </div>
+
+                <!-- FORM LOGIN -->
+                <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1.5">Username atau Email</label>
+                        <div class="relative">
+                            <i class="fa-regular fa-user absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="login-identifier" required placeholder="misal: budi_dapur / resto@gmail.com" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none transition">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1.5">Kata Sandi (Password)</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none transition">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition active:scale-[0.98] text-sm">
+                        Masuk ke Aplikasi <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                    <div class="text-center pt-2">
+                        <button type="button" onclick="loadDemoAccount()" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline">
+                            <i class="fa-solid fa-sparkles"></i> Coba Akun Demo Sampel (Masuk Instan)
+                        </button>
+                    </div>
+                </form>
+
+                <!-- FORM DAFTAR -->
+                <form id="form-register" onsubmit="handleRegister(event)" class="space-y-3 text-xs hidden">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nama Pemilik Usaha</label>
+                        <input type="text" id="reg-fullname" required placeholder="Contoh: Budi Santoso" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Nama Usaha / Resto / Cafe</label>
+                        <input type="text" id="reg-business" required placeholder="Contoh: Resto Dapur Selera" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Username Unik</label>
+                        <input type="text" id="reg-username" required placeholder="budi_dapur" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Email Aktif</label>
+                        <input type="email" id="reg-email" required placeholder="budi@gmail.com" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Kata Sandi (Password)</label>
+                        <input type="password" id="reg-password" required placeholder="Minimal 4 karakter" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition active:scale-[0.98] text-sm mt-2">
+                        Buat Akun Baru & Masuk
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. MAIN DASHBOARD APPLICATION             -->
+    <!-- ========================================== -->
+    <div id="main-app" class="hidden min-h-screen flex flex-col">
+        <!-- TOP NAVBAR -->
+        <header class="bg-white/90 border-b border-slate-200/80 sticky top-0 z-30 shadow-xs backdrop-blur-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Brand Logo -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-emerald-500/20">
+                            <i class="fa-solid fa-utensils"></i>
+                        </div>
+                        <div>
+                            <span class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-1.5">
+                                DishCost <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Live</span>
+                            </span>
+                            <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Hitung Modal & Keuntungan Resto Anda</p>
+                        </div>
+                    </div>
+
+                    <!-- Actions & User Profile Dropdown -->
+                    <div class="flex items-center space-x-3">
+                        <button onclick="switchTab('ocr')" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 shadow-md shadow-emerald-500/20">
+                            <i class="fa-solid fa-camera"></i>
+                            <span class="hidden sm:inline">Pindai Nota Belanja</span>
+                        </button>
+
+                        <!-- User Profile Info & Interactive Dropdown Menu -->
+                        <div class="relative pl-2 border-l border-slate-200">
+                            <button onclick="toggleUserDropdown()" id="user-menu-btn" class="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-xl transition border border-transparent hover:border-slate-200">
+                                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-black flex items-center justify-center text-xs shadow-xs" id="user-avatar-initials">
+                                    US
+                                </div>
+                                <div class="text-left hidden md:block">
+                                    <div class="text-xs font-bold text-slate-900 leading-tight" id="user-display-business">Nama Resto</div>
+                                    <div class="text-[10px] text-slate-500 leading-tight" id="user-display-name">Pemilik</div>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-[10px] ml-1"></i>
+                            </button>
+
+                            <!-- User Dropdown Menu -->
+                            <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-50 text-xs space-y-1 animate-in fade-in zoom-in duration-150">
+                                <div class="px-3 py-2 border-b border-slate-100 mb-1">
+                                    <div class="font-bold text-slate-900 truncate" id="dropdown-user-fullname">Nama Pemilik</div>
+                                    <div class="text-[10px] text-slate-400 truncate" id="dropdown-user-email">email@domain.com</div>
+                                </div>
+                                <button onclick="openProfileModal(); toggleUserDropdown(false);" class="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 text-slate-700 font-bold flex items-center gap-2.5 transition">
+                                    <i class="fa-solid fa-sliders text-emerald-500 w-4"></i> Pengaturan Profil Usaha
+                                </button>
+                                <button onclick="handleLogout(); toggleUserDropdown(false);" class="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-50 text-slate-700 font-bold flex items-center gap-2.5 transition">
+                                    <i class="fa-solid fa-user-gear text-indigo-500 w-4"></i> Ganti Akun / Switch User
+                                </button>
+                                <div class="border-t border-slate-100 my-1 pt-1"></div>
+                                <button onclick="handleLogout(); toggleUserDropdown(false);" class="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 text-rose-600 font-bold flex items-center gap-2.5 transition">
+                                    <i class="fa-solid fa-right-from-bracket text-rose-500 w-4"></i> Keluar (Logout)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="bg-white border-b border-slate-200 sticky top-16 z-20 shadow-xs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-6 overflow-x-auto custom-scrollbar">
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn py-3.5 px-1 border-b-2 font-bold text-xs whitespace-nowrap flex items-center gap-2 text-emerald-600 border-emerald-600">
+                        <i class="fa-solid fa-chart-pie"></i> Untung-Rugi & Rekomendasi
+                    </button>
+                    <button onclick="switchTab('sales')" id="tab-sales" class="tab-btn py-3.5 px-1 border-b-2 font-bold text-xs whitespace-nowrap flex items-center gap-2 text-slate-500 border-transparent hover:text-slate-800">
+                        <i class="fa-solid fa-cash-register"></i> Catatan Penjualan Harian
+                    </button>
+                    <button onclick="switchTab('recipes')" id="tab-recipes" class="tab-btn py-3.5 px-1 border-b-2 font-bold text-xs whitespace-nowrap flex items-center gap-2 text-slate-500 border-transparent hover:text-slate-800">
+                        <i class="fa-solid fa-book-open"></i> Resep Menu & Modal (<span id="tab-recipes-count">0</span>)
+                    </button>
+                    <button onclick="switchTab('ingredients')" id="tab-ingredients" class="tab-btn py-3.5 px-1 border-b-2 font-bold text-xs whitespace-nowrap flex items-center gap-2 text-slate-500 border-transparent hover:text-slate-800">
+                        <i class="fa-solid fa-boxes-stacked"></i> Master Bahan Makanan (<span id="tab-ingredients-count">0</span>)
+                    </button>
+                    <button onclick="switchTab('ocr')" id="tab-ocr" class="tab-btn py-3.5 px-1 border-b-2 font-bold text-xs whitespace-nowrap flex items-center gap-2 text-slate-500 border-transparent hover:text-slate-800">
+                        <i class="fa-solid fa-camera"></i> Pindai Nota Belanja
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- MAIN VIEW CONTAINER -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+
+            <!-- TAB 1: UNTUNG-RUGI DASHBOARD -->
+            <section id="view-dashboard" class="space-y-6">
+                <!-- Welcome Banner Personalized -->
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-900/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <span class="bg-white/20 text-white text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">Sesi Akun Terverifikasi</span>
+                        <h2 class="text-xl md:text-2xl font-black">Selamat Datang, <span id="welcome-user-name">Pemilik</span>! 👋</h2>
+                        <p class="text-xs text-emerald-100 max-w-xl">
+                            Pantau modal resep dan margin keuntungan usaha <strong id="welcome-business-name">Resto Anda</strong> secara otomatis & akurat.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2 self-start md:self-center">
+                        <button onclick="openProfileModal()" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold px-3.5 py-2.5 rounded-xl backdrop-blur-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-sliders"></i> Pengaturan Profil
+                        </button>
+                        <button onclick="handleLogout()" class="bg-rose-500/20 hover:bg-rose-500/30 text-white border border-rose-400/30 text-xs font-bold px-3.5 py-2.5 rounded-xl backdrop-blur-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alert Warning Container -->
+                <div id="alert-banner-container"></div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-bold uppercase tracking-wider">Total Menu Aktif</span>
+                            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-slate-900" id="dash-total-menu">0</div>
+                        <p class="text-xs text-slate-500" id="dash-menu-sub">0 Menu Terdaftar</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-bold uppercase tracking-wider">Menu Untung Tipis</span>
+                            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-rose-600" id="dash-alert-count">0</div>
+                        <p class="text-xs text-slate-500">Margin Profit &lt; 45%</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-bold uppercase tracking-wider">Persen Modal Bahan</span>
+                            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                                <i class="fa-solid fa-percent"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-slate-900" id="dash-avg-foodcost">0%</div>
+                        <p class="text-xs text-slate-500">Rata-rata dari harga jual</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span class="text-xs font-bold uppercase tracking-wider">Master Bahan Makanan</span>
+                            <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-slate-900" id="dash-total-ingredients">0</div>
+                        <p class="text-xs text-slate-500">Bahan Terdaftar</p>
+                    </div>
+                </div>
+
+                <!-- Table Section -->
+                <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden space-y-4">
+                    <div class="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">Analisis Keuntungan Seluruh Menu</h3>
+                            <p class="text-xs text-slate-500">Pantau modal bahan dan rekomendasi harga jual agar bisnis tetap sehat.</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <input type="text" id="dash-search" oninput="renderDashboard()" placeholder="Cari nama menu..." class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <select id="dash-filter-margin" onchange="renderDashboard()" class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <option value="all">Semua Status Profit</option>
+                                <option value="green">🟢 Sangat Untung (&ge;60%)</option>
+                                <option value="yellow">🟡 Lumayan (45-59%)</option>
+                                <option value="red">🔴 Tipis / Riskan (&lt;45%)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3.5 px-5">Nama Menu</th>
+                                    <th class="py-3.5 px-5">Kategori</th>
+                                    <th class="py-3.5 px-5">Harga Jual</th>
+                                    <th class="py-3.5 px-5">Modal Bahan / Porsi</th>
+                                    <th class="py-3.5 px-5">% Keuntungan</th>
+                                    <th class="py-3.5 px-5">Status Untung</th>
+                                    <th class="py-3.5 px-5">Saran Harga Jual</th>
+                                    <th class="py-3.5 px-5 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-menu-tbody" class="divide-y divide-slate-100">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: CATATAN PENJUALAN HARIAN -->
+            <section id="view-sales" class="hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Hitung Keuntungan Penjualan Hari Ini</h2>
+                    <p class="text-xs text-slate-500">Masukkan berapa porsi terjual hari ini. Uang masuk, modal bahan, dan profit bersih dihitung otomatis!</p>
+                </div>
+
+                <!-- Financial Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Terjual</span>
+                        <div class="text-2xl font-black text-slate-900" id="sales-summary-qty">0 Porsi</div>
+                        <p class="text-xs text-slate-500">Volume Penjualan</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Pemasukan (Omset)</span>
+                        <div class="text-2xl font-black text-slate-900" id="sales-summary-revenue">Rp 0</div>
+                        <p class="text-xs text-slate-500">Uang Masuk Kotor</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Modal Bahan</span>
+                        <div class="text-2xl font-black text-amber-600" id="sales-summary-cogs">Rp 0</div>
+                        <p class="text-xs text-slate-500">Bahan Terpakai</p>
+                    </div>
+                    <div class="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-lg space-y-1">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Keuntungan Bersih</span>
+                        <div class="text-2xl font-black text-emerald-400" id="sales-summary-profit">Rp 0</div>
+                        <p class="text-xs text-slate-400" id="sales-summary-margin-pct">Persen Profit: 0%</p>
+                    </div>
+                </div>
+
+                <!-- Sales Input Table -->
+                <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                        <h3 class="text-base font-bold text-slate-900">Rincian Porsi Terjual Per Menu</h3>
+                        <button onclick="resetSalesQty()" class="text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-xl transition">
+                            <i class="fa-solid fa-rotate-left"></i> Kosongkan Porsi
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3.5 px-5">Nama Menu</th>
+                                    <th class="py-3.5 px-5">Harga Jual</th>
+                                    <th class="py-3.5 px-5">Modal / Porsi</th>
+                                    <th class="py-3.5 px-5 text-center">Porsi Terjual</th>
+                                    <th class="py-3.5 px-5">Subtotal Omset</th>
+                                    <th class="py-3.5 px-5">Subtotal Modal</th>
+                                    <th class="py-3.5 px-5 text-right">Untung Bersih</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-tbody" class="divide-y divide-slate-100">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: RESEP MENU & TAKARAN -->
+            <section id="view-recipes" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Kelola Resep & Takaran Bahan Menu</h2>
+                        <p class="text-xs text-slate-500">Atur takaran resep untuk kalkulasi modal otomatis.</p>
+                    </div>
+                    <button onclick="openRecipeModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md shadow-emerald-500/20 transition">
+                        <i class="fa-solid fa-plus"></i> Tambah Menu Baru
+                    </button>
+                </div>
+
+                <div id="recipes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Dynamic Recipe Cards -->
+                </div>
+            </section>
+
+            <!-- TAB 4: MASTER BAHAN MAKANAN -->
+            <section id="view-ingredients" class="hidden space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Master Bahan Makanan & Harga Beli</h2>
+                        <p class="text-xs text-slate-500">Daftar harga beli bahan yang menjadi acuan modal resep Anda.</p>
+                    </div>
+                    <button onclick="openIngredientModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md shadow-emerald-500/20 transition">
+                        <i class="fa-solid fa-plus"></i> Tambah Bahan Makanan
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="py-3.5 px-5">Nama Bahan</th>
+                                    <th class="py-3.5 px-5">Harga Beli Nota</th>
+                                    <th class="py-3.5 px-5">Satuan Belanja</th>
+                                    <th class="py-3.5 px-5">Hitungan Takaran</th>
+                                    <th class="py-3.5 px-5">Harga Per Takaran</th>
+                                    <th class="py-3.5 px-5">Terakhir Di-update</th>
+                                    <th class="py-3.5 px-5">Dipakai Pada</th>
+                                    <th class="py-3.5 px-5 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ingredients-tbody" class="divide-y divide-slate-100">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: PINDAI NOTA BELANJA -->
+            <section id="view-ocr" class="hidden space-y-6">
+                <div class="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/80 shadow-xs p-6 space-y-6">
+                    <div class="border-b border-slate-100 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-camera text-emerald-500"></i> Pindai Nota Belanja Otomatis
+                            </h2>
+                            <p class="text-xs text-slate-500">Foto nota pasar/supplier Anda. Sistem akan membaca tulisan harga dan otomatis mencocokkan bahan makanan Anda.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-start-camera" onclick="startCameraStream()" class="bg-slate-900 text-white hover:bg-slate-800 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-video"></i> Buka Kamera
+                            </button>
+                            <button id="btn-stop-camera" onclick="stopCameraStream()" class="bg-slate-200 text-slate-700 hover:bg-slate-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition hidden">
+                                <i class="fa-solid fa-video-slash"></i> Matikan Kamera
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Camera / Upload View Area -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <div class="relative bg-slate-950 rounded-2xl overflow-hidden aspect-[4/3] flex items-center justify-center border border-slate-800 shadow-inner">
+                                <video id="camera-video" autoplay playsinline class="w-full h-full object-cover hidden"></video>
+                                <img id="captured-preview" class="w-full h-full object-contain hidden" alt="Captured Receipt">
+                                <div id="camera-placeholder" class="text-center p-6 text-slate-500 space-y-2">
+                                    <i class="fa-solid fa-camera-retro text-4xl text-slate-600"></i>
+                                    <p class="text-xs">Kamera mati. Klik "Buka Kamera" atau unggah foto nota dari perangkat Anda.</p>
+                                </div>
+
+                                <!-- Loading Scan Overlay -->
+                                <div id="ocr-loading-overlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 hidden">
+                                    <div class="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                                    <div class="font-bold text-xs text-emerald-400" id="ocr-status-text">Membaca Tulisan Nota...</div>
+                                    <div class="w-48 bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
+                                        <div id="ocr-progress-bar" class="bg-emerald-500 h-full w-0 transition-all duration-200"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="flex items-center gap-2">
+                                <button id="btn-capture" onclick="capturePhotoAndProcess()" disabled class="flex-1 bg-emerald-500 disabled:bg-slate-200 disabled:text-slate-400 hover:bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-circle-dot"></i> Ambil Foto & Pindai
+                                </button>
+                                <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-upload"></i> Unggah Gambar
+                                    <input type="file" accept="image/*" onchange="handleFileUpload(event)" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- OCR Output Area -->
+                        <div class="flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Hasil Pembacaan Teks Nota:</label>
+                                    <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold">Otomatis Ekstraksi</span>
+                                </div>
+                                <textarea id="ocr-input-text" rows="7" class="w-full p-3 font-mono text-xs bg-slate-900 text-emerald-400 rounded-2xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Hasil pembacaan teks nota akan muncul di sini... Anda juga bisa mengedit atau mengetik manual jika nota buram."></textarea>
+                            </div>
+
+                            <!-- Preset Sample Receipts -->
+                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2">
+                                <div class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                    <i class="fa-solid fa-receipt text-slate-400"></i> Coba Dengan Contoh Nota:
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-[11px]">
+                                    <button onclick="loadSampleReceipt('pasarmurah')" class="p-2 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 text-slate-700 font-bold truncate">
+                                        Nota Pasar
+                                    </button>
+                                    <button onclick="loadSampleReceipt('suppliertermo')" class="p-2 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 text-slate-700 font-bold truncate">
+                                        Supplier Ayam
+                                    </button>
+                                    <button onclick="loadSampleReceipt('coffeebeans')" class="p-2 bg-white border border-slate-200 rounded-xl hover:border-emerald-500 text-slate-700 font-bold truncate">
+                                        Roastery Kopi
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button onclick="runOcrEngine()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs shadow-md">
+                                <i class="fa-solid fa-wand-magic-sparkles text-emerald-400"></i> Cocokkan Dengan Bahan Makanan Saya
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+            <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
+                &copy; 2026 <span class="font-bold text-slate-600">DishCost Live</span> &bull; Aplikasi Hitung Modal & Keuntungan Resto Indonesia.
+            </div>
+        </footer>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODALS                                     -->
+    <!-- ========================================== -->
+
+    <!-- MODAL PROFILE & PENGATURAN USAHA -->
+    <div id="modal-profile" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900">Pengaturan Profil Usaha</h3>
+                <button onclick="closeModal('modal-profile')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveProfileChanges(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Pemilik Usaha</label>
+                    <input type="text" id="prof-fullname" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Usaha / Resto</label>
+                    <input type="text" id="prof-business" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Email Registrasi</label>
+                    <input type="email" id="prof-email" readonly class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 cursor-not-allowed">
+                </div>
+
+                <div class="pt-2 flex flex-col gap-2">
+                    <button type="submit" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-sm">
+                        Simpan Perubahan
+                    </button>
+                    <button type="button" onclick="resetUserData()" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl border border-amber-200 transition">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Data Akun Ini Ke Default
+                    </button>
+                    <button type="button" onclick="closeModal('modal-profile'); handleLogout();" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl border border-rose-200 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Keluar Dari Akun Ini
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL OCR CONFIRMATION -->
+    <div id="modal-ocr-review" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-100 my-8 space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-emerald-500"></i> Konfirmasi Hasil Pembacaan Nota
+                    </h3>
+                    <p class="text-xs text-slate-500">Hubungkan item belanjaan nota dengan daftar bahan makanan Anda.</p>
+                </div>
+                <button onclick="closeModal('modal-ocr-review')" class="text-slate-400 hover:text-slate-600 p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="overflow-x-auto max-h-72 custom-scrollbar">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider sticky top-0">
+                        <tr>
+                            <th class="py-2.5 px-3">Item Di Nota</th>
+                            <th class="py-2.5 px-3">Harga Nota</th>
+                            <th class="py-2.5 px-3">Cocokkan Bahan Makanan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ocr-review-tbody" class="divide-y divide-slate-100">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs text-emerald-900 flex items-start gap-2">
+                <i class="fa-solid fa-circle-info text-emerald-600 mt-0.5"></i>
+                <div>
+                    <strong>Update Otomatis:</strong> Menekan tombol di bawah akan langsung memperbarui modal resep & keuntungan menu Anda.
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 border-t border-slate-100 pt-4">
+                <button onclick="closeModal('modal-ocr-review')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-bold">Batal</button>
+                <button onclick="applyOcrUpdates()" class="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md transition">Terapkan Perubahan Modal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BAHAN MAKANAN -->
+    <div id="modal-ingredient" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900" id="ing-modal-title">Tambah Bahan Makanan</h3>
+                <button onclick="closeModal('modal-ingredient')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="ing-form" onsubmit="saveIngredient(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="ing-id">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nama Bahan Makanan</label>
+                    <input type="text" id="ing-name" required placeholder="Contoh: Daging Ayam Fillet" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Harga Beli Belanja (Rp)</label>
+                        <input type="number" id="ing-price" required min="0" placeholder="52000" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Satuan Belanja Nota</label>
+                        <input type="text" id="ing-unit" required placeholder="Contoh: Kg, Dus, Liter" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Satuan Takaran Resep</label>
+                        <select id="ing-recipe-unit" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="gram">Gram (gr)</option>
+                            <option value="ml">Milliliter (ml)</option>
+                            <option value="pcs">Pcs / Biji</option>
+                            <option value="porsi">Porsi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Jumlah Isi Per Satuan Beli</label>
+                        <input type="number" id="ing-conversion" required min="1" placeholder="1 Kg = 1000 gr" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modal-ingredient')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-bold">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-sm">Simpan Bahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL RESEP MENU -->
+    <div id="modal-recipe" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 my-8">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-base font-bold text-slate-900" id="recipe-modal-title">Kelola Resep Menu</h3>
+                <button onclick="closeModal('modal-recipe')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="recipe-form" onsubmit="saveRecipe(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="recipe-id">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Nama Menu</label>
+                        <input type="text" id="recipe-name" required placeholder="Contoh: Kopi Susu Gula Aren" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Kategori</label>
+                        <select id="recipe-category" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                            <option value="Minuman">Minuman</option>
+                            <option value="Makanan Utama">Makanan Utama</option>
+                            <option value="Cemilan / Dessert">Cemilan / Dessert</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Harga Jual Menu (Rp)</label>
+                        <input type="number" id="recipe-price" required min="0" placeholder="22000" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Target Untung Minimum (%)</label>
+                        <input type="number" id="recipe-target-margin" value="60" required min="10" max="95" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Takaran Bahan -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="font-bold text-slate-700">Takaran Bahan Makanan Per Porsi</label>
+                        <button type="button" onclick="addIngredientRowToRecipe()" class="text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-circle-plus"></i> Tambah Bahan
+                        </button>
+                    </div>
+
+                    <div id="recipe-bom-container" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
+                        <!-- Dynamic Rows -->
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <span class="text-slate-500">Modal Bahan / Porsi:</span>
+                        <span class="font-black text-slate-900 ml-2" id="recipe-modal-cogs">Rp 0</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">Perkiraan Profit:</span>
+                        <span class="font-black ml-2" id="recipe-modal-margin">0%</span>
+                    </div>
+                </div>
+
+                <div class="pt-3 flex justify-end space-x-2 border-t border-slate-100">
+                    <button type="button" onclick="closeModal('modal-recipe')" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-bold">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-sm">Simpan Menu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        // ==========================================
+        // 1. DATA DEFAULT SAMPEL (UNTUK USER BARU)
+        // ==========================================
+        const DEFAULT_INGREDIENTS = [
+            { id: 'ing_1', name: 'Biji Kopi Houseblend', buyPrice: 180000, buyUnit: 'Kg', recipeUnit: 'gram', conversion: 1000, lastUpdated: new Date().toISOString() },
+            { id: 'ing_2', name: 'Susu Fresh Milk', buyPrice: 22000, buyUnit: 'Liter', recipeUnit: 'ml', conversion: 1000, lastUpdated: new Date().toISOString() },
+            { id: 'ing_3', name: 'Gula Aren Cair', buyPrice: 35000, buyUnit: 'Liter', recipeUnit: 'ml', conversion: 1000, lastUpdated: new Date().toISOString() },
+            { id: 'ing_4', name: 'Daging Ayam Fillet', buyPrice: 52000, buyUnit: 'Kg', recipeUnit: 'gram', conversion: 1000, lastUpdated: new Date().toISOString() },
+            { id: 'ing_5', name: 'Minyak Goreng', buyPrice: 19000, buyUnit: 'Liter', recipeUnit: 'ml', conversion: 1000, lastUpdated: new Date().toISOString() },
+            { id: 'ing_6', name: 'Beras Premium', buyPrice: 16500, buyUnit: 'Kg', recipeUnit: 'gram', conversion: 1000, lastUpdated: new Date().toISOString() },
+            { id: 'ing_7', name: 'Cabai Rawit Merah', buyPrice: 65000, buyUnit: 'Kg', recipeUnit: 'gram', conversion: 1000, lastUpdated: new Date().toISOString() }
+        ];
+
+        const DEFAULT_RECIPES = [
+            {
+                id: 'rec_1',
+                name: 'Kopi Susu Gula Aren',
+                category: 'Minuman',
+                sellingPrice: 22000,
+                targetMargin: 60,
+                soldQty: 18,
+                bom: [
+                    { ingredientId: 'ing_1', qty: 18 },
+                    { ingredientId: 'ing_2', qty: 120 },
+                    { ingredientId: 'ing_3', qty: 25 }
+                ]
+            },
+            {
+                id: 'rec_2',
+                name: 'Ayam Geprek Sambal Matah',
+                category: 'Makanan Utama',
+                sellingPrice: 28000,
+                targetMargin: 60,
+                soldQty: 25,
+                bom: [
+                    { ingredientId: 'ing_4', qty: 200 },
+                    { ingredientId: 'ing_5', qty: 50 },
+                    { ingredientId: 'ing_6', qty: 150 },
+                    { ingredientId: 'ing_7', qty: 25 }
+                ]
+            },
+            {
+                id: 'rec_3',
+                name: 'Es Teh Manis Aren',
+                category: 'Minuman',
+                sellingPrice: 10000,
+                targetMargin: 65,
+                soldQty: 30,
+                bom: [
+                    { ingredientId: 'ing_3', qty: 30 }
+                ]
+            }
+        ];
+
+        // GLOBAL STATE
+        let currentUser = null;
+        let ingredients = [];
+        let recipes = [];
+        let pendingOcrExtractedItems = [];
+        let mediaStream = null;
+
+        // ==========================================
+        // 2. USER AUTHENTICATION & PERSISTENCE
+        // ==========================================
+        function switchAuthTab(tab) {
+            const btnLogin = document.getElementById('btn-tab-login');
+            const btnReg = document.getElementById('btn-tab-register');
+            const formLogin = document.getElementById('form-login');
+            const formReg = document.getElementById('form-register');
+
+            if (tab === 'login') {
+                btnLogin.className = 'flex-1 py-2.5 rounded-xl transition bg-white text-slate-900 shadow-xs';
+                btnReg.className = 'flex-1 py-2.5 rounded-xl transition hover:text-slate-900 text-slate-500';
+                formLogin.classList.remove('hidden');
+                formReg.classList.add('hidden');
+            } else {
+                btnReg.className = 'flex-1 py-2.5 rounded-xl transition bg-white text-slate-900 shadow-xs';
+                btnLogin.className = 'flex-1 py-2.5 rounded-xl transition hover:text-slate-900 text-slate-500';
+                formReg.classList.remove('hidden');
+                formLogin.classList.add('hidden');
+            }
+        }
+
+        // AMBIL SEMUA USERS TERDAFTAR DARI LOCALSTORAGE PERMANEN
+        function getRegisteredUsers() {
+            const users = localStorage.getItem('dishcost_registered_users');
+            return users ? JSON.parse(users) : [];
+        }
+
+        // SIMPAN DATA USERS PERMANEN
+        function saveRegisteredUsers(usersArray) {
+            localStorage.setItem('dishcost_registered_users', JSON.stringify(usersArray));
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const fullname = document.getElementById('reg-fullname').value.trim();
+            const business = document.getElementById('reg-business').value.trim();
+            const username = document.getElementById('reg-username').value.trim().toLowerCase();
+            const email = document.getElementById('reg-email').value.trim().toLowerCase();
+            const password = document.getElementById('reg-password').value;
+
+            let users = getRegisteredUsers();
+            
+            // Cek Duplikasi Username atau Email
+            if (users.some(u => u.username === username || u.email === email)) {
+                alert('Username atau email sudah terdaftar! Silakan gunakan username/email lain atau langsung masuk.');
+                return;
+            }
+
+            const newUser = {
+                userId: 'usr_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+                fullname,
+                business,
+                username,
+                email,
+                password
+            };
+
+            // Simpan pengguna baru ke array permanen
+            users.push(newUser);
+            saveRegisteredUsers(users);
+
+            // Inisialisasi data resep & bahan baku awal untuk user baru ini
+            const initialUserData = {
+                ingredients: DEFAULT_INGREDIENTS,
+                recipes: DEFAULT_RECIPES
+            };
+            localStorage.setItem(`dishcost_userdata_${newUser.userId}`, JSON.stringify(initialUserData));
+
+            // Login otomatis ke akun baru
+            loginSession(newUser);
+            showToast('Akun berhasil dibuat dan tersimpan!');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('login-identifier').value.trim().toLowerCase();
+            const password = document.getElementById('login-password').value;
+
+            const users = getRegisteredUsers();
+            const foundUser = users.find(u => (u.username === identifier || u.email === identifier) && u.password === password);
+
+            if (foundUser) {
+                loginSession(foundUser);
+            } else {
+                alert('Username/Email atau kata sandi tidak cocok. Silakan periksa kembali!');
+            }
+        }
+
+        function loadDemoAccount() {
+            const demoUserId = 'usr_demo_sample';
+            let users = getRegisteredUsers();
+            let demoUser = users.find(u => u.userId === demoUserId);
+
+            if (!demoUser) {
+                demoUser = {
+                    userId: demoUserId,
+                    fullname: 'Pemilik Demo',
+                    business: 'Dapur Sampel Resto',
+                    username: 'demo',
+                    email: 'demo@dishcost.com',
+                    password: 'demo'
+                };
+                users.push(demoUser);
+                saveRegisteredUsers(users);
+            }
+
+            if (!localStorage.getItem(`dishcost_userdata_${demoUserId}`)) {
+                const initialUserData = {
+                    ingredients: DEFAULT_INGREDIENTS,
+                    recipes: DEFAULT_RECIPES
+                };
+                localStorage.setItem(`dishcost_userdata_${demoUserId}`, JSON.stringify(initialUserData));
+            }
+
+            loginSession(demoUser);
+        }
+
+        function loginSession(user) {
+            currentUser = user;
+            // SIMPAN SESI AKTIF (Hanya UserId yang disimpan)
+            localStorage.setItem('dishcost_active_session', user.userId);
+            
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+
+            updateProfileDisplay();
+            loadCurrentUserData();
+            showToast(`Selamat datang kembali, ${currentUser.fullname}!`);
+        }
+
+        function handleLogout() {
+            stopCameraStream();
+
+            // KOSONGKAN SESI AKTIF Saja
+            currentUser = null;
+            localStorage.removeItem('dishcost_active_session');
+
+            document.getElementById('login-identifier').value = '';
+            document.getElementById('login-password').value = '';
+
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+
+            toggleUserDropdown(false);
+            showToast('Berhasil keluar dari akun.');
+        }
+
+        function toggleUserDropdown(forceState = null) {
+            const menu = document.getElementById('user-dropdown-menu');
+            if (!menu) return;
+            if (forceState !== null) {
+                if (forceState) menu.classList.remove('hidden');
+                else menu.classList.add('hidden');
+            } else {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        window.addEventListener('click', function(e) {
+            const btn = document.getElementById('user-menu-btn');
+            const menu = document.getElementById('user-dropdown-menu');
+            if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        function updateProfileDisplay() {
+            if (!currentUser) return;
+            document.getElementById('user-display-business').innerText = currentUser.business;
+            document.getElementById('user-display-name').innerText = currentUser.fullname;
+            document.getElementById('dropdown-user-fullname').innerText = currentUser.fullname;
+            document.getElementById('dropdown-user-email').innerText = currentUser.email;
+            document.getElementById('welcome-user-name').innerText = currentUser.fullname;
+            document.getElementById('welcome-business-name').innerText = currentUser.business;
+
+            const initials = currentUser.fullname.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('user-avatar-initials').innerText = initials || 'US';
+        }
+
+        // ==========================================
+        // 3. AMBIL DATA SPESIFIK USER ID
+        // ==========================================
+        function loadCurrentUserData() {
+            if (!currentUser) return;
+
+            const rawData = localStorage.getItem(`dishcost_userdata_${currentUser.userId}`);
+            if (rawData) {
+                try {
+                    const parsed = JSON.parse(rawData);
+                    ingredients = parsed.ingredients || [...DEFAULT_INGREDIENTS];
+                    recipes = parsed.recipes || [...DEFAULT_RECIPES];
+                } catch(e) {
+                    ingredients = [...DEFAULT_INGREDIENTS];
+                    recipes = [...DEFAULT_RECIPES];
+                }
+            } else {
+                ingredients = [...DEFAULT_INGREDIENTS];
+                recipes = [...DEFAULT_RECIPES];
+                saveCurrentUserData();
+            }
+
+            renderDashboard();
+            renderSalesTab();
+            renderRecipesTab();
+            renderIngredientsTab();
+            updateTabBadges();
+        }
+
+        function saveCurrentUserData() {
+            if (!currentUser) return;
+            const userDataObj = {
+                ingredients: ingredients,
+                recipes: recipes
+            };
+            localStorage.setItem(`dishcost_userdata_${currentUser.userId}`, JSON.stringify(userDataObj));
+        }
+
+        function openProfileModal() {
+            if (!currentUser) return;
+            document.getElementById('prof-fullname').value = currentUser.fullname;
+            document.getElementById('prof-business').value = currentUser.business;
+            document.getElementById('prof-email').value = currentUser.email;
+            document.getElementById('modal-profile').classList.remove('hidden');
+        }
+
+        function saveProfileChanges(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const newName = document.getElementById('prof-fullname').value.trim();
+            const newBusiness = document.getElementById('prof-business').value.trim();
+
+            currentUser.fullname = newName;
+            currentUser.business = newBusiness;
+
+            let users = getRegisteredUsers();
+            const idx = users.findIndex(u => u.userId === currentUser.userId);
+            if (idx !== -1) {
+                users[idx] = currentUser;
+                saveRegisteredUsers(users);
+            }
+
+            updateProfileDisplay();
+            closeModal('modal-profile');
+            showToast('Profil usaha berhasil diperbarui.');
+        }
+
+        function resetUserData() {
+            if (confirm('Reset seluruh data resep & bahan makanan akun ini ke standar contoh awal?')) {
+                ingredients = [...DEFAULT_INGREDIENTS];
+                recipes = [...DEFAULT_RECIPES];
+                saveCurrentUserData();
+                closeModal('modal-profile');
+                renderDashboard();
+                renderSalesTab();
+                renderRecipesTab();
+                renderIngredientsTab();
+                updateTabBadges();
+                showToast('Data akun berhasil di-reset.');
+            }
+        }
+
+        // ==========================================
+        // 4. ENGINE KALKULASI HARGA & MARGIN
+        // ==========================================
+        function calculateIngredientUnitPrice(ing) {
+            if (!ing || ing.conversion <= 0) return 0;
+            return ing.buyPrice / ing.conversion;
+        }
+
+        function calculateRecipeCOGS(recipe) {
+            let totalCOGS = 0;
+            if (!recipe.bom || !Array.isArray(recipe.bom)) return 0;
+
+            recipe.bom.forEach(item => {
+                const ing = ingredients.find(i => i.id === item.ingredientId);
+                if (ing) {
+                    const unitPrice = calculateIngredientUnitPrice(ing);
+                    totalCOGS += unitPrice * item.qty;
+                }
+            });
+            return totalCOGS;
+        }
+
+        function calculateMargin(sellingPrice, cogs) {
+            if (sellingPrice <= 0) return 0;
+            return ((sellingPrice - cogs) / sellingPrice) * 100;
+        }
+
+        function calculateSuggestedPrice(cogs, targetMarginPercent = 60) {
+            if (targetMarginPercent >= 100) return cogs;
+            const targetMarginDecimal = targetMarginPercent / 100;
+            const rawSuggested = cogs / (1 - targetMarginDecimal);
+            return Math.ceil(rawSuggested / 500) * 500;
+        }
+
+        function getMarginBadgeInfo(marginPercent) {
+            if (marginPercent >= 60) {
+                return {
+                    colorClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                    label: '🟢 Sangat Untung (&ge;60%)',
+                    statusKey: 'green'
+                };
+            } else if (marginPercent >= 45) {
+                return {
+                    colorClass: 'bg-amber-100 text-amber-800 border-amber-200',
+                    label: '🟡 Lumayan (45-59%)',
+                    statusKey: 'yellow'
+                };
+            } else {
+                return {
+                    colorClass: 'bg-rose-100 text-rose-800 border-rose-200',
+                    label: '🔴 Tipis / Riskan (<45%)',
+                    statusKey: 'red'
+                };
+            }
+        }
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number);
+        }
+
+        // ==========================================
+        // 5. RENDER TAMPILAN VIEW
+        // ==========================================
+        function renderDashboard() {
+            const tbody = document.getElementById('dashboard-menu-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const searchTerm = (document.getElementById('dash-search')?.value || '').toLowerCase();
+            const filterMargin = document.getElementById('dash-filter-margin')?.value || 'all';
+
+            let criticalCount = 0;
+            let totalFoodCostAcc = 0;
+            let validMenuCount = 0;
+
+            recipes.forEach(recipe => {
+                const cogs = calculateRecipeCOGS(recipe);
+                const margin = calculateMargin(recipe.sellingPrice, cogs);
+                const badge = getMarginBadgeInfo(margin);
+                const suggestedPrice = calculateSuggestedPrice(cogs, recipe.targetMargin || 60);
+
+                if (margin < 45) criticalCount++;
+                if (recipe.sellingPrice > 0) {
+                    totalFoodCostAcc += (cogs / recipe.sellingPrice) * 100;
+                    validMenuCount++;
+                }
+
+                const matchesSearch = recipe.name.toLowerCase().includes(searchTerm) || recipe.category.toLowerCase().includes(searchTerm);
+                const matchesFilter = (filterMargin === 'all') || (badge.statusKey === filterMargin);
+
+                if (matchesSearch && matchesFilter) {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                    tr.innerHTML = `
+                        <td class="py-3.5 px-5 font-bold text-slate-900">${recipe.name}</td>
+                        <td class="py-3.5 px-5"><span class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg text-[11px] font-bold">${recipe.category}</span></td>
+                        <td class="py-3.5 px-5 font-bold">${formatRupiah(recipe.sellingPrice)}</td>
+                        <td class="py-3.5 px-5 text-slate-700 font-bold">${formatRupiah(cogs)}</td>
+                        <td class="py-3.5 px-5 font-black ${margin < 45 ? 'text-rose-600' : (margin < 60 ? 'text-amber-600' : 'text-emerald-600')}">
+                            ${margin.toFixed(1)}%
+                        </td>
+                        <td class="py-3.5 px-5">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${badge.colorClass}">
+                                ${badge.label}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-5 font-bold text-slate-800">
+                            ${margin < (recipe.targetMargin || 60) ? `
+                                <span class="text-rose-600 flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-trend-up"></i> ${formatRupiah(suggestedPrice)}
+                                </span>
+                            ` : '<span class="text-slate-400 text-xs font-normal">Sudah ideal</span>'}
+                        </td>
+                        <td class="py-3.5 px-5 text-right">
+                            <button onclick="openRecipeModal('${recipe.id}')" class="text-slate-400 hover:text-emerald-600 p-1.5 rounded-lg transition" title="Edit Resep">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+
+            document.getElementById('dash-total-menu').innerText = recipes.length;
+            document.getElementById('dash-menu-sub').innerText = `${recipes.length} Menu Terdaftar`;
+            document.getElementById('dash-alert-count').innerText = criticalCount;
+            document.getElementById('dash-total-ingredients').innerText = ingredients.length;
+
+            const avgFoodCost = validMenuCount > 0 ? (totalFoodCostAcc / validMenuCount).toFixed(1) : 0;
+            document.getElementById('dash-avg-foodcost').innerText = `${avgFoodCost}%`;
+
+            renderAlertBanner(criticalCount);
+        }
+
+        function renderSalesTab() {
+            const tbody = document.getElementById('sales-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            recipes.forEach(recipe => {
+                const qty = recipe.soldQty || 0;
+                const cogs = calculateRecipeCOGS(recipe);
+                const revenue = recipe.sellingPrice * qty;
+                const cogsTotal = cogs * qty;
+                const profit = revenue - cogsTotal;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                tr.innerHTML = `
+                    <td class="py-3.5 px-5 font-bold text-slate-900">${recipe.name}</td>
+                    <td class="py-3.5 px-5 font-medium">${formatRupiah(recipe.sellingPrice)}</td>
+                    <td class="py-3.5 px-5 text-slate-600 font-medium">${formatRupiah(cogs)}</td>
+                    <td class="py-3.5 px-5 text-center">
+                        <input type="number" min="0" value="${qty}" 
+                            oninput="updateRecipeSoldQty('${recipe.id}', this.value)" 
+                            class="w-20 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 text-center focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </td>
+                    <td class="py-3.5 px-5 font-bold text-slate-900" id="subtotal-rev-${recipe.id}">${formatRupiah(revenue)}</td>
+                    <td class="py-3.5 px-5 font-bold text-amber-600" id="subtotal-cogs-${recipe.id}">${formatRupiah(cogsTotal)}</td>
+                    <td class="py-3.5 px-5 font-black text-right text-emerald-600" id="subtotal-profit-${recipe.id}">${formatRupiah(profit)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            recalculateSalesSummary();
+        }
+
+        function updateRecipeSoldQty(recipeId, value) {
+            const recipe = recipes.find(r => r.id === recipeId);
+            if (recipe) {
+                const newQty = Math.max(0, parseInt(value) || 0);
+                recipe.soldQty = newQty;
+
+                const cogs = calculateRecipeCOGS(recipe);
+                const revenue = recipe.sellingPrice * newQty;
+                const cogsTotal = cogs * newQty;
+                const profit = revenue - cogsTotal;
+
+                document.getElementById(`subtotal-rev-${recipe.id}`).innerText = formatRupiah(revenue);
+                document.getElementById(`subtotal-cogs-${recipe.id}`).innerText = formatRupiah(cogsTotal);
+                document.getElementById(`subtotal-profit-${recipe.id}`).innerText = formatRupiah(profit);
+
+                saveCurrentUserData();
+                recalculateSalesSummary();
+            }
+        }
+
+        function recalculateSalesSummary() {
+            let totalQty = 0;
+            let totalRevenue = 0;
+            let totalCogs = 0;
+
+            recipes.forEach(recipe => {
+                const qty = recipe.soldQty || 0;
+                const cogs = calculateRecipeCOGS(recipe);
+                totalQty += qty;
+                totalRevenue += (recipe.sellingPrice * qty);
+                totalCogs += (cogs * qty);
+            });
+
+            const totalProfit = totalRevenue - totalCogs;
+            const marginPct = totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0;
+
+            document.getElementById('sales-summary-qty').innerText = `${totalQty} Porsi`;
+            document.getElementById('sales-summary-revenue').innerText = formatRupiah(totalRevenue);
+            document.getElementById('sales-summary-cogs').innerText = formatRupiah(totalCogs);
+            document.getElementById('sales-summary-profit').innerText = formatRupiah(totalProfit);
+            document.getElementById('sales-summary-margin-pct').innerText = `Persen Untung Bersih: ${marginPct}%`;
+        }
+
+        function resetSalesQty() {
+            if (confirm('Kosongkan semua angka porsi terjual harian?')) {
+                recipes.forEach(r => r.soldQty = 0);
+                saveCurrentUserData();
+                renderSalesTab();
+                showToast('Catatan porsi terjual berhasil dikosongkan.');
+            }
+        }
+
+        function renderAlertBanner(criticalCount) {
+            const container = document.getElementById('alert-banner-container');
+            if (!container) return;
+
+            if (criticalCount > 0) {
+                container.innerHTML = `
+                    <div class="bg-gradient-to-r from-rose-50 to-amber-50 border-l-4 border-rose-500 p-4 rounded-2xl shadow-xs flex items-start justify-between">
+                        <div class="flex items-start space-x-3">
+                            <div class="p-2 bg-rose-100 text-rose-600 rounded-xl text-base mt-0.5">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-xs">Peringatan Keuntungan Tipis!</h4>
+                                <p class="text-xs text-slate-600 mt-0.5">
+                                    Ada <strong class="text-rose-600">${criticalCount} menu</strong> yang untungnya di bawah 45% karena modal bahan. Pertimbangkan untuk menyesuaikan harga jual atau takaran.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-l-4 border-emerald-500 p-4 rounded-2xl shadow-xs flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-emerald-100 text-emerald-600 rounded-xl text-base">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-xs">Keuntungan Seluruh Menu Sehat</h4>
+                                <p class="text-xs text-slate-600">Seluruh menu makanan/minuman sudah memberikan profit margin yang aman.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderRecipesTab() {
+            const grid = document.getElementById('recipes-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            recipes.forEach(recipe => {
+                const cogs = calculateRecipeCOGS(recipe);
+                const margin = calculateMargin(recipe.sellingPrice, cogs);
+                const badge = getMarginBadgeInfo(margin);
+
+                let bomHtml = '';
+                recipe.bom.forEach(b => {
+                    const ing = ingredients.find(i => i.id === b.ingredientId);
+                    if (ing) {
+                        const cost = calculateIngredientUnitPrice(ing) * b.qty;
+                        bomHtml += `
+                            <div class="flex justify-between items-center text-xs text-slate-600 py-1 border-b border-slate-50">
+                                <span>${ing.name} (${b.qty} ${ing.recipeUnit})</span>
+                                <span class="font-bold text-slate-800">${formatRupiah(cost)}</span>
+                            </div>
+                        `;
+                    }
+                });
+
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-3xl border border-slate-200/80 shadow-xs p-5 space-y-4 hover:shadow-md transition';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${recipe.category}</span>
+                            <h3 class="text-base font-black text-slate-900 mt-0.5">${recipe.name}</h3>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold border ${badge.colorClass}">${margin.toFixed(1)}%</span>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-1">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500">Harga Jual:</span>
+                            <span class="font-bold text-slate-900">${formatRupiah(recipe.sellingPrice)}</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-500">Modal Bahan / Porsi:</span>
+                            <span class="font-bold text-emerald-600">${formatRupiah(cogs)}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 mb-1">Takaran Bahan:</p>
+                        <div class="bg-white rounded-2xl border border-slate-100 p-2 max-h-32 overflow-y-auto custom-scrollbar">
+                            ${bomHtml || '<p class="text-xs text-slate-400 italic">Belum ada bahan</p>'}
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <button onclick="openRecipeModal('${recipe.id}')" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit Resep
+                        </button>
+                        <button onclick="deleteRecipe('${recipe.id}')" class="text-xs text-slate-400 hover:text-rose-600 transition">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderIngredientsTab() {
+            const tbody = document.getElementById('ingredients-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            ingredients.forEach(ing => {
+                const unitPrice = calculateIngredientUnitPrice(ing);
+                const usedIn = recipes.filter(r => r.bom.some(b => b.ingredientId === ing.id)).map(r => r.name);
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+                tr.innerHTML = `
+                    <td class="py-3.5 px-5 font-bold text-slate-900">${ing.name}</td>
+                    <td class="py-3.5 px-5 font-extrabold text-slate-800">${formatRupiah(ing.buyPrice)}</td>
+                    <td class="py-3.5 px-5 text-slate-600">Per ${ing.buyUnit}</td>
+                    <td class="py-3.5 px-5 text-xs text-slate-500">1 ${ing.buyUnit} = ${ing.conversion} ${ing.recipeUnit}</td>
+                    <td class="py-3.5 px-5 font-bold text-emerald-600">${formatRupiah(unitPrice)} / ${ing.recipeUnit}</td>
+                    <td class="py-3.5 px-5 text-xs text-slate-400">${new Date(ing.lastUpdated).toLocaleDateString('id-ID')}</td>
+                    <td class="py-3.5 px-5 text-xs">
+                        ${usedIn.length > 0 ? `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-bold">${usedIn.length} Menu</span>` : '<span class="text-slate-400">Belum dipakai</span>'}
+                    </td>
+                    <td class="py-3.5 px-5 text-right space-x-2">
+                        <button onclick="quickUpdateIngPrice('${ing.id}')" class="bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-bold px-2.5 py-1 rounded-xl text-[11px] transition">
+                            Edit Harga
+                        </button>
+                        <button onclick="openIngredientModal('${ing.id}')" class="text-slate-400 hover:text-slate-600 p-1">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateTabBadges() {
+            document.getElementById('tab-recipes-count').innerText = recipes.length;
+            document.getElementById('tab-ingredients-count').innerText = ingredients.length;
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['dashboard', 'sales', 'recipes', 'ingredients', 'ocr'];
+
+            tabs.forEach(name => {
+                const viewEl = document.getElementById(`view-${name}`);
+                if (viewEl) viewEl.classList.add('hidden');
+
+                const btn = document.getElementById(`tab-${name}`);
+                if (btn) {
+                    btn.classList.remove('text-emerald-600', 'border-emerald-600');
+                    btn.classList.add('text-slate-500', 'border-transparent');
+                }
+            });
+
+            document.getElementById(`view-${tabName}`)?.classList.remove('hidden');
+
+            const activeBtn = document.getElementById(`tab-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('text-emerald-600', 'border-emerald-600');
+                activeBtn.classList.remove('text-slate-500', 'border-transparent');
+            }
+
+            if (tabName !== 'ocr') stopCameraStream();
+
+            if (tabName === 'dashboard') renderDashboard();
+            if (tabName === 'sales') renderSalesTab();
+            if (tabName === 'recipes') renderRecipesTab();
+            if (tabName === 'ingredients') renderIngredientsTab();
+        }
+
+        // ==========================================
+        // 6. CAMERA OCR ENGINE
+        // ==========================================
+        async function startCameraStream() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
+                });
+
+                const video = document.getElementById('camera-video');
+                video.srcObject = mediaStream;
+                video.classList.remove('hidden');
+
+                document.getElementById('camera-placeholder').classList.add('hidden');
+                document.getElementById('captured-preview').classList.add('hidden');
+                document.getElementById('btn-start-camera').classList.add('hidden');
+                document.getElementById('btn-stop-camera').classList.remove('hidden');
+                document.getElementById('btn-capture').disabled = false;
+            } catch (err) {
+                alert('Gagal mengakses kamera. Berikan izin kamera pada browser Anda.');
+            }
+        }
+
+        function stopCameraStream() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            document.getElementById('camera-video')?.classList.add('hidden');
+            document.getElementById('camera-placeholder')?.classList.remove('hidden');
+            document.getElementById('btn-start-camera')?.classList.remove('hidden');
+            document.getElementById('btn-stop-camera')?.classList.add('hidden');
+            const btnCapture = document.getElementById('btn-capture');
+            if (btnCapture) btnCapture.disabled = true;
+        }
+
+        async function capturePhotoAndProcess() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('captured-preview');
+
+            if (!video || video.classList.contains('hidden')) return;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageDataUrl = canvas.toDataURL('image/jpeg');
+            preview.src = imageDataUrl;
+            preview.classList.remove('hidden');
+            video.classList.add('hidden');
+
+            stopCameraStream();
+            await processImageWithTesseract(imageDataUrl);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const preview = document.getElementById('captured-preview');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                document.getElementById('camera-placeholder').classList.add('hidden');
+                document.getElementById('camera-video').classList.add('hidden');
+
+                stopCameraStream();
+                await processImageWithTesseract(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function processImageWithTesseract(imageSource) {
+            const overlay = document.getElementById('ocr-loading-overlay');
+            const statusText = document.getElementById('ocr-status-text');
+            const progressBar = document.getElementById('ocr-progress-bar');
+            const textarea = document.getElementById('ocr-input-text');
+
+            overlay.classList.remove('hidden');
+            statusText.innerText = 'Menyiapkan Pembaca Nota...';
+            progressBar.style.width = '15%';
+
+            try {
+                if (typeof Tesseract === 'undefined') throw new Error('Tesseract unavailable');
+
+                const worker = await Tesseract.createWorker('ind+eng');
+                statusText.innerText = 'Membaca Tulisan Nota Belanja...';
+                progressBar.style.width = '60%';
+
+                const ret = await worker.recognize(imageSource);
+                statusText.innerText = 'Selesai!';
+                progressBar.style.width = '100%';
+
+                await worker.terminate();
+                textarea.value = ret.data.text;
+                showToast('Sukses membaca teks nota!');
+            } catch (err) {
+                loadSampleReceipt('pasarmurah');
+                showToast('Menggunakan data nota contoh.');
+            } finally {
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                }, 600);
+            }
+        }
+
+        const MOCK_RECEIPTS = {
+            pasarmurah: `NOTA PASAR SEGAR\n--------------------\nBawang Merah 1 Kg Rp 48.000\nMinyak Goreng 2 Liter 44.000\nCabai Rawit Merah 1 Kg 65.000\nTotal: 157.000`,
+            suppliertermo: `PT SUPPLIER AYAM SEGAR\n-------------------------\nDaging Ayam Fillet 2 Kg @ 52.000 = 104.000\nBeras Premium 10 Kg = 165.000`,
+            coffeebeans: `ROASTERY KOPI INDONESIA\n-----------------------\nBiji Kopi Houseblend 1 Kg = 180.000\nSusu Fresh Milk 5 Liter = 110.000`
+        };
+
+        function loadSampleReceipt(presetKey) {
+            const inputEl = document.getElementById('ocr-input-text');
+            if (MOCK_RECEIPTS[presetKey] && inputEl) {
+                inputEl.value = MOCK_RECEIPTS[presetKey];
+            }
+        }
+
+        function runOcrEngine() {
+            const rawText = document.getElementById('ocr-input-text').value;
+            if (!rawText.trim()) {
+                alert('Ambil foto nota atau pilih contoh nota terlebih dahulu.');
+                return;
+            }
+
+            const lines = rawText.split('\n');
+            pendingOcrExtractedItems = [];
+
+            lines.forEach(line => {
+                const cleaned = line.trim();
+                if (!cleaned || cleaned.toLowerCase().startsWith('total') || cleaned.includes('---')) return;
+
+                const numbers = cleaned.match(/\d+[\d\.,]*/g);
+                if (!numbers || numbers.length === 0) return;
+
+                const cleanPrice = parseInt(numbers[numbers.length - 1].replace(/[\.,]/g, ''), 10);
+                let itemName = cleaned.replace(/[\d\.,]|Rp|Total|@|=/gi, '').trim();
+                if (!itemName) itemName = cleaned;
+
+                let matchedIng = ingredients.find(ing => 
+                    itemName.toLowerCase().includes(ing.name.toLowerCase()) || 
+                    ing.name.toLowerCase().includes(itemName.toLowerCase())
+                );
+
+                pendingOcrExtractedItems.push({
+                    rawItem: itemName,
+                    detectedPrice: cleanPrice,
+                    matchedIngredientId: matchedIng ? matchedIng.id : ''
+                });
+            });
+
+            renderOcrReviewModal();
+            document.getElementById('modal-ocr-review').classList.remove('hidden');
+        }
+
+        function renderOcrReviewModal() {
+            const tbody = document.getElementById('ocr-review-tbody');
+            tbody.innerHTML = '';
+
+            pendingOcrExtractedItems.forEach((item, index) => {
+                let options = '<option value="">-- Abaikan --</option>';
+                ingredients.forEach(ing => {
+                    const selected = ing.id === item.matchedIngredientId ? 'selected' : '';
+                    options += `<option value="${ing.id}" ${selected}>${ing.name} (${ing.buyUnit})</option>`;
+                });
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-bold text-slate-800">${item.rawItem}</td>
+                    <td class="py-2.5 px-3 font-extrabold text-slate-900">${formatRupiah(item.detectedPrice)}</td>
+                    <td class="py-2.5 px-3">
+                        <select onchange="pendingOcrExtractedItems[${index}].matchedIngredientId = this.value" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs">
+                            ${options}
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyOcrUpdates() {
+            let updatedCount = 0;
+
+            pendingOcrExtractedItems.forEach(item => {
+                if (item.matchedIngredientId) {
+                    const ing = ingredients.find(i => i.id === item.matchedIngredientId);
+                    if (ing) {
+                        ing.buyPrice = item.detectedPrice;
+                        ing.lastUpdated = new Date().toISOString();
+                        updatedCount++;
+                    }
+                }
+            });
+
+            saveCurrentUserData();
+            closeModal('modal-ocr-review');
+            renderDashboard();
+            renderSalesTab();
+            renderIngredientsTab();
+            renderRecipesTab();
+            switchTab('dashboard');
+
+            showToast(`Harga ${updatedCount} bahan makanan diperbarui!`);
+        }
+
+        // ==========================================
+        // 7. BAHAN MAKANAN CRUD
+        // ==========================================
+        function openIngredientModal(id = null) {
+            document.getElementById('ing-form').reset();
+
+            if (id) {
+                const ing = ingredients.find(i => i.id === id);
+                if (ing) {
+                    document.getElementById('ing-modal-title').innerText = 'Edit Bahan Makanan';
+                    document.getElementById('ing-id').value = ing.id;
+                    document.getElementById('ing-name').value = ing.name;
+                    document.getElementById('ing-price').value = ing.buyPrice;
+                    document.getElementById('ing-unit').value = ing.buyUnit;
+                    document.getElementById('ing-recipe-unit').value = ing.recipeUnit;
+                    document.getElementById('ing-conversion').value = ing.conversion;
+                }
+            } else {
+                document.getElementById('ing-modal-title').innerText = 'Tambah Bahan Makanan Baru';
+                document.getElementById('ing-id').value = '';
+            }
+
+            document.getElementById('modal-ingredient').classList.remove('hidden');
+        }
+
+        function saveIngredient(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('ing-id').value;
+            const name = document.getElementById('ing-name').value;
+            const buyPrice = parseFloat(document.getElementById('ing-price').value);
+            const buyUnit = document.getElementById('ing-unit').value;
+            const recipeUnit = document.getElementById('ing-recipe-unit').value;
+            const conversion = parseFloat(document.getElementById('ing-conversion').value);
+
+            if (id) {
+                const ing = ingredients.find(i => i.id === id);
+                if (ing) {
+                    ing.name = name;
+                    ing.buyPrice = buyPrice;
+                    ing.buyUnit = buyUnit;
+                    ing.recipeUnit = recipeUnit;
+                    ing.conversion = conversion;
+                    ing.lastUpdated = new Date().toISOString();
+                }
+            } else {
+                ingredients.push({
+                    id: 'ing_' + Date.now(),
+                    name,
+                    buyPrice,
+                    buyUnit,
+                    recipeUnit,
+                    conversion,
+                    lastUpdated: new Date().toISOString()
+                });
+            }
+
+            saveCurrentUserData();
+            closeModal('modal-ingredient');
+            renderDashboard();
+            renderSalesTab();
+            renderIngredientsTab();
+            renderRecipesTab();
+            updateTabBadges();
+            showToast('Bahan makanan tersimpan!');
+        }
+
+        function quickUpdateIngPrice(id) {
+            const ing = ingredients.find(i => i.id === id);
+            if (!ing) return;
+
+            const newPrice = prompt(`Masukkan harga beli baru untuk "${ing.name}" (per ${ing.buyUnit}):`, ing.buyPrice);
+            if (newPrice !== null && !isNaN(newPrice) && newPrice > 0) {
+                ing.buyPrice = parseFloat(newPrice);
+                ing.lastUpdated = new Date().toISOString();
+                saveCurrentUserData();
+                renderDashboard();
+                renderSalesTab();
+                renderIngredientsTab();
+                renderRecipesTab();
+                showToast(`Harga ${ing.name} diperbarui!`);
+            }
+        }
+
+        // ==========================================
+        // 8. RESEP MENU CRUD
+        // ==========================================
+        function openRecipeModal(id = null) {
+            document.getElementById('recipe-bom-container').innerHTML = '';
+
+            if (id) {
+                const recipe = recipes.find(r => r.id === id);
+                if (recipe) {
+                    document.getElementById('recipe-modal-title').innerText = 'Edit Resep Menu';
+                    document.getElementById('recipe-id').value = recipe.id;
+                    document.getElementById('recipe-name').value = recipe.name;
+                    document.getElementById('recipe-category').value = recipe.category;
+                    document.getElementById('recipe-price').value = recipe.sellingPrice;
+                    document.getElementById('recipe-target-margin').value = recipe.targetMargin || 60;
+
+                    recipe.bom.forEach(item => {
+                        addIngredientRowToRecipe(item.ingredientId, item.qty);
+                    });
+                }
+            } else {
+                document.getElementById('recipe-modal-title').innerText = 'Tambah Menu Baru';
+                document.getElementById('recipe-id').value = '';
+                document.getElementById('recipe-name').value = '';
+                document.getElementById('recipe-price').value = '';
+                addIngredientRowToRecipe();
+            }
+
+            recalculateRecipeModalPreview();
+            document.getElementById('modal-recipe').classList.remove('hidden');
+        }
+
+        function addIngredientRowToRecipe(selectedIngId = '', qty = '') {
+            const container = document.getElementById('recipe-bom-container');
+            const rowId = 'bom_row_' + Date.now() + Math.random().toString(36).substring(2, 4);
+
+            let options = '<option value="">-- Pilih Bahan --</option>';
+            ingredients.forEach(ing => {
+                const selected = ing.id === selectedIngId ? 'selected' : '';
+                options += `<option value="${ing.id}" ${selected}>${ing.name} (${ing.recipeUnit})</option>`;
+            });
+
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.className = 'flex items-center gap-2';
+            div.innerHTML = `
+                <select onchange="recalculateRecipeModalPreview()" class="bom-ing-select flex-1 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500">
+                    ${options}
+                </select>
+                <input type="number" step="any" value="${qty}" oninput="recalculateRecipeModalPreview()" placeholder="Jml Takaran" class="bom-qty-input w-28 bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500">
+                <button type="button" onclick="document.getElementById('${rowId}').remove(); recalculateRecipeModalPreview();" class="text-slate-400 hover:text-rose-600 p-2">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function recalculateRecipeModalPreview() {
+            const sellingPrice = parseFloat(document.getElementById('recipe-price').value) || 0;
+            const ingSelects = document.querySelectorAll('.bom-ing-select');
+            const qtyInputs = document.querySelectorAll('.bom-qty-input');
+
+            let tempCOGS = 0;
+            ingSelects.forEach((select, idx) => {
+                const ingId = select.value;
+                const qty = parseFloat(qtyInputs[idx].value) || 0;
+                if (ingId) {
+                    const ing = ingredients.find(i => i.id === ingId);
+                    if (ing) {
+                        tempCOGS += calculateIngredientUnitPrice(ing) * qty;
+                    }
+                }
+            });
+
+            const margin = calculateMargin(sellingPrice, tempCOGS);
+            document.getElementById('recipe-modal-cogs').innerText = formatRupiah(tempCOGS);
+            document.getElementById('recipe-modal-margin').innerText = `${margin.toFixed(1)}%`;
+        }
+
+        function saveRecipe(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('recipe-id').value;
+            const name = document.getElementById('recipe-name').value;
+            const category = document.getElementById('recipe-category').value;
+            const sellingPrice = parseFloat(document.getElementById('recipe-price').value);
+            const targetMargin = parseFloat(document.getElementById('recipe-target-margin').value);
+
+            const ingSelects = document.querySelectorAll('.bom-ing-select');
+            const qtyInputs = document.querySelectorAll('.bom-qty-input');
+
+            const bom = [];
+            ingSelects.forEach((select, idx) => {
+                const ingId = select.value;
+                const qty = parseFloat(qtyInputs[idx].value) || 0;
+                if (ingId && qty > 0) {
+                    bom.push({ ingredientId: ingId, qty });
+                }
+            });
+
+            if (id) {
+                const recipe = recipes.find(r => r.id === id);
+                if (recipe) {
+                    recipe.name = name;
+                    recipe.category = category;
+                    recipe.sellingPrice = sellingPrice;
+                    recipe.targetMargin = targetMargin;
+                    recipe.bom = bom;
+                }
+            } else {
+                recipes.push({
+                    id: 'rec_' + Date.now(),
+                    name,
+                    category,
+                    sellingPrice,
+                    targetMargin,
+                    soldQty: 0,
+                    bom
+                });
+            }
+
+            saveCurrentUserData();
+            closeModal('modal-recipe');
+            renderDashboard();
+            renderSalesTab();
+            renderRecipesTab();
+            updateTabBadges();
+            showToast('Menu & resep berhasil disimpan.');
+        }
+
+        function deleteRecipe(id) {
+            if (confirm('Hapus menu ini dari akun Anda?')) {
+                recipes = recipes.filter(r => r.id !== id);
+                saveCurrentUserData();
+                renderDashboard();
+                renderSalesTab();
+                renderRecipesTab();
+                updateTabBadges();
+                showToast('Menu dihapus.');
+            }
+        }
+
+        // ==========================================
+        // 9. UTILS & INIT STATE ON WINDOW LOAD
+        // ==========================================
+        function closeModal(modalId) {
+            document.getElementById(modalId)?.classList.add('hidden');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold z-50 flex items-center gap-2 animate-bounce';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // INIT SAAT PERTAMA KALI HALAMAN DILOAD / REFRESH
+        window.onload = function() {
+            const activeUserId = localStorage.getItem('dishcost_active_session');
+            
+            if (activeUserId) {
+                const registeredUsers = getRegisteredUsers();
+                const matchedUser = registeredUsers.find(u => u.userId === activeUserId);
+
+                if (matchedUser) {
+                    // Sesi aktif ditemukan dan valid, langsung masuk ke Dashboard!
+                    loginSession(matchedUser);
+                } else {
+                    // Jika data tidak valid, tampilkan layar login
+                    document.getElementById('auth-screen').classList.remove('hidden');
+                }
+            } else {
+                // Belum login sama sekali, tampilkan layar login
+                document.getElementById('auth-screen').classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+</html>
